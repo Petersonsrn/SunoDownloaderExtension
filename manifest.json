@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Suno Downloader",
+  "version": "1.0",
+  "description": "Baixa músicas do Suno em formato MP3",
+  "permissions": [
+    "downloads",
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "*://*.suno.com/*",
+    "*://*.suno.ai/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Suno Downloader"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.suno.com/*", "*://*.suno.ai/*"],
+      "js": ["content.js"]
+    }
+  ]
+}

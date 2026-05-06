@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Suno Downloader</title>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      width: 320px;
+      padding: 15px;
+      background-color: #121212;
+      color: #ffffff;
+      margin: 0;
+    }
+    h2 {
+      font-size: 16px;
+      text-align: center;
+      margin-top: 0;
+      color: #1db954;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      background-color: #1db954;
+      color: black;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .btn:hover {
+      background-color: #1ed760;
+    }
+    .btn-all {
+      background-color: #ff4757;
+      color: white;
+      display: none;
+    }
+    .btn-all:hover {
+      background-color: #ff6b81;
+    }
+    #status {
+      margin-top: 15px;
+      font-size: 12px;
+      text-align: center;
+      color: #aaaaaa;
+    }
+    .song-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #1e1e1e;
+      padding: 8px;
+      margin-top: 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .song-title {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 180px;
+    }
+    .dl-btn {
+      background: #ffffff;
+      color: #000000;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 10px;
+      font-weight: bold;
+    }
+    .dl-btn:hover {
+      background: #dddddd;
+    }
+    #songList {
+      margin-top: 15px;
+      max-height: 250px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <h2>Suno Downloader</h2>
+  <div style="text-align: center; margin-bottom: 10px; font-size: 14px; background: #1e1e1e; padding: 10px; border-radius: 5px;">
+    <span style="margin-right: 10px; color: #aaaaaa;">Formato:</span>
+    <label style="cursor: pointer; margin-right: 15px;">
+      <input type="radio" name="format" value="mp3" checked> MP3
+    </label>
+    <label style="cursor: pointer;">
+      <input type="radio" name="format" value="wav"> WAV
+    </label>
+  </div>
+  <button class="btn" id="scanBtn">Escanear Músicas na Página</button>
+  <button class="btn" id="clearBtn" style="background-color: #ff9f43; display: none;">Zerar Memória (Limpar Log)</button>
+  <button class="btn btn-all" id="downloadAllBtn">Baixar TODAS de uma vez!</button>
+  <div id="status">Clique para procurar as músicas.</div>
+  <div id="songList"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
