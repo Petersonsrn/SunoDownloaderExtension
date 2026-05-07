@@ -259,6 +259,26 @@ async function startAutoApplier(keywords, resumeName) {
   }
   
   console.log("🏁 Varredura concluída desta página!");
+  
+  // Procurar o botão de Próxima Página (Avançar)
+  // O LinkedIn usa aria-label="Avançar" ou "Next" ou classes específicas para a paginação
+  const nextPageBtn = document.querySelector('button[aria-label="Avançar"], button[aria-label="Next"], button.artdeco-pagination__button--next');
+  
+  if (nextPageBtn && !nextPageBtn.disabled) {
+    console.log("➡️ Indo para a próxima página de vagas...");
+    nextPageBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    await sleep(1000);
+    nextPageBtn.click();
+    
+    // Esperar a nova página carregar na tela e reiniciar o ciclo infinitamente
+    console.log("⏳ Aguardando nova página carregar...");
+    await sleep(4000); 
+    
+    startAutoApplier(keywords, resumeName);
+  } else {
+    console.log("🛑 Fim da linha. Não há mais páginas de vagas para avançar.");
+    alert("🎉 Varredura total concluída! O robô chegou ao fim de todas as páginas possíveis de vagas.");
+  }
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
