@@ -8,9 +8,12 @@ const SmartAnswersDB = [
   { keywords: ['sponsor', 'visto', 'patrocínio', 'visa'], answer: 'não' },
   { keywords: ['authorized', 'autorizado', 'legalmente', 'legally', 'work in'], answer: 'sim' },
   
-  // Educação e Formação
+  // Educação, Formação e Certificações
   { keywords: ['bachelor', 'bacharel', 'graduação', 'degree', 'formado', 'diploma'], answer: 'sim' },
   
+  // Produto, Ágil e Liderança (FOCO: Product Owner / Product Manager)
+  { keywords: ['agile', 'ágil', 'scrum', 'kanban', 'jira', 'confluence', 'product owner', 'product manager', 'backlog', 'roadmap', 'liderança', 'leadership', 'kpi'], answer: 'sim' },
+
   // Idiomas
   { keywords: ['english', 'inglês', 'idioma', 'language'], answer: 'fluente' }, 
   { keywords: ['espanhol', 'spanish'], answer: 'avançado' },
