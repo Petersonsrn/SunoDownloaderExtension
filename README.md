@@ -35,11 +35,14 @@ Este projeto foi construído utilizando as seguintes tecnologias web modernas:
 
 ```
 /
-├── background.js       # Service worker responsável por gerenciar os downloads
-├── content.js          # Script injetado na página do Suno para manipulação da DOM
+├── src/                # Scripts principais da extensão
+│   ├── background.js   # Service worker responsável por gerenciar os downloads
+│   └── content.js      # Script injetado na página do Suno para manipulação da DOM
+├── popup/              # Interface do usuário (Popup)
+│   ├── popup.html      # Interface gráfica principal
+│   └── popup.js        # Lógica e interatividade visual
 ├── manifest.json       # Arquivo de configuração principal da extensão (Manifest V3)
-├── popup.html          # Interface gráfica principal da extensão
-└── popup.js            # Lógica e interatividade do popup
+└── README.md           # Documentação do projeto
 ```
 
 ## 🤝 Como Contribuir

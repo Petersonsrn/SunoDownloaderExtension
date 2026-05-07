@@ -14,16 +14,16 @@
     "*://*.suno.ai/*"
   ],
   "action": {
-    "default_popup": "popup.html",
+    "default_popup": "popup/popup.html",
     "default_title": "Suno Downloader"
   },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "src/background.js"
   },
   "content_scripts": [
     {
       "matches": ["*://*.suno.com/*", "*://*.suno.ai/*"],
-      "js": ["content.js"]
+      "js": ["src/content.js"]
     }
   ]
 }
