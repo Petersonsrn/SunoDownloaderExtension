@@ -4,7 +4,7 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 // Banco de Dados da Inteligência Artificial (Melhores Respostas do Mercado)
 const SmartAnswersDB = [
-  // Vistos e Autorizações (Empresas preferem quem não precisa de patrocínio)
+  // Vistos e Autorizações
   { keywords: ['sponsor', 'visto', 'patrocínio', 'visa'], answer: 'não' },
   { keywords: ['authorized', 'autorizado', 'legalmente', 'legally', 'work in'], answer: 'sim' },
   
@@ -18,13 +18,17 @@ const SmartAnswersDB = [
   // Salário (Ajustado para nível Liderança/Gerência)
   { keywords: ['salári', 'pretensão', 'salary', 'compensation'], answer: '18000' },
   
+  // Modelos de contratação e Tecnologias que não domino
+  { keywords: ['pj', 'clt', 'modelo', 'contratação'], answer: 'sim' },
+  { keywords: ['abap', 's/4hana', 'sap'], answer: 'não' },
+  
   // Tempo e Disponibilidade
   { keywords: ['disponibilidade', 'notice period', 'início', 'começar'], answer: 'Imediato' },
   
   // Experiência (Anos - Ajustado para IT Manager)
   { keywords: ['anos', 'years', 'experiência', 'experience'], answer: '10' },
   
-  // Questões EEO (Igualdade) - Melhor evitar filtros automáticos
+  // Questões EEO (Igualdade)
   { keywords: ['deficiência', 'disability', 'veteran', 'veterano'], answer: 'não' },
 ];
 
@@ -34,7 +38,26 @@ function getBestAnswerFromDB(labelText) {
       return entry.answer;
     }
   }
-  return null; // Retorna null se não achar nada no banco
+  return null;
+}
+
+// Hack para contornar o React do LinkedIn e forçar ele a reconhecer que o campo foi preenchido
+function setReactInputValue(element, value) {
+  element.focus && element.focus();
+  element.dispatchEvent(new Event('focus', { bubbles: true }));
+  
+  const isSelect = element.tagName === 'SELECT';
+  const proto = isSelect ? window.HTMLSelectElement.prototype : window.HTMLInputElement.prototype;
+  const setter = Object.getOwnPropertyDescriptor(proto, 'value').set;
+  if (setter) {
+    setter.call(element, value);
+  } else {
+    element.value = value;
+  }
+  
+  element.dispatchEvent(new Event('input', { bubbles: true }));
+  element.dispatchEvent(new Event('change', { bubbles: true }));
+  element.dispatchEvent(new Event('blur', { bubbles: true }));
 }
 
 // Preenche os formulários extras usando o Banco de Dados
@@ -48,15 +71,13 @@ function fillAdditionalQuestions() {
     const labelText = label ? label.innerText.toLowerCase() : '';
     if (!labelText) return;
 
-    // Busca a resposta ideal no nosso DB
     const bestAnswer = getBestAnswerFromDB(labelText);
 
     // 1. Campos de Texto ou Número
     const input = group.querySelector('input[type="text"], input[type="number"]');
     if (input && !input.value) {
-      input.value = bestAnswer ? bestAnswer : '5'; // Usa o DB, ou chuta 5 como fallback forte
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-      input.dispatchEvent(new Event('change', { bubbles: true }));
+      const valueToInject = bestAnswer ? bestAnswer : '10'; // Fallback forte
+      setReactInputValue(input, valueToInject);
     }
 
     // 2. Caixas de Seleção Nativas (Dropdowns)
@@ -66,21 +87,18 @@ function fillAdditionalQuestions() {
       
       let targetOption = null;
       if (bestAnswer) {
-        // Tenta achar a opção que dá match com a nossa melhor resposta do DB
         targetOption = options.find(opt => opt.text.toLowerCase().includes(bestAnswer.toLowerCase()));
       }
       
-      // Se não achou no DB, procura pelo "Sim" genérico
       if (!targetOption) {
         targetOption = options.find(opt => opt.text.toLowerCase().includes('sim') || opt.text.toLowerCase().includes('yes'));
       }
 
       if (targetOption) {
-        select.value = targetOption.value;
+        setReactInputValue(select, targetOption.value);
       } else if (options.length > 1) {
-        select.value = options[1].value; // Chute genérico
+        setReactInputValue(select, options[1].value);
       }
-      select.dispatchEvent(new Event('change', { bubbles: true }));
     }
 
     // 3. Botões de Rádio (Múltipla escolha)
