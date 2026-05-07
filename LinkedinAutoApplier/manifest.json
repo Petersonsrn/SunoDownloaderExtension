@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "LinkedIn Auto Applier Pro",
+  "version": "1.0",
+  "description": "Busca vagas compatíveis com seu currículo e automatiza a candidatura simplificada no LinkedIn.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "*://*.linkedin.com/*"
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "LinkedIn Auto Applier"
+  },
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.linkedin.com/jobs/*"],
+      "js": ["src/content.js"]
+    }
+  ]
+}

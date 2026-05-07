@@ -1,0 +1,268 @@
+// Content script injected into LinkedIn Jobs page
+
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Banco de Dados da Inteligência Artificial (Melhores Respostas do Mercado)
+const SmartAnswersDB = [
+  // Vistos e Autorizações (Empresas preferem quem não precisa de patrocínio)
+  { keywords: ['sponsor', 'visto', 'patrocínio', 'visa'], answer: 'não' },
+  { keywords: ['authorized', 'autorizado', 'legalmente', 'legally', 'work in'], answer: 'sim' },
+  
+  // Educação e Formação
+  { keywords: ['bachelor', 'bacharel', 'graduação', 'degree', 'formado', 'diploma'], answer: 'sim' },
+  
+  // Idiomas
+  { keywords: ['english', 'inglês', 'idioma', 'language'], answer: 'fluente' }, 
+  { keywords: ['espanhol', 'spanish'], answer: 'avançado' },
+  
+  // Salário (Ajustado para nível Liderança/Gerência)
+  { keywords: ['salári', 'pretensão', 'salary', 'compensation'], answer: '18000' },
+  
+  // Tempo e Disponibilidade
+  { keywords: ['disponibilidade', 'notice period', 'início', 'começar'], answer: 'Imediato' },
+  
+  // Experiência (Anos - Ajustado para IT Manager)
+  { keywords: ['anos', 'years', 'experiência', 'experience'], answer: '10' },
+  
+  // Questões EEO (Igualdade) - Melhor evitar filtros automáticos
+  { keywords: ['deficiência', 'disability', 'veteran', 'veterano'], answer: 'não' },
+];
+
+function getBestAnswerFromDB(labelText) {
+  for (let entry of SmartAnswersDB) {
+    if (entry.keywords.some(kw => labelText.includes(kw))) {
+      return entry.answer;
+    }
+  }
+  return null; // Retorna null se não achar nada no banco
+}
+
+// Preenche os formulários extras usando o Banco de Dados
+function fillAdditionalQuestions() {
+  console.log("🧠 IA Consultando Banco de Dados de Perguntas...");
+  
+  const formGroups = document.querySelectorAll('.pb4, .jobs-easy-apply-form-section__item');
+  
+  formGroups.forEach(group => {
+    const label = group.querySelector('label, span[aria-hidden="true"]');
+    const labelText = label ? label.innerText.toLowerCase() : '';
+    if (!labelText) return;
+
+    // Busca a resposta ideal no nosso DB
+    const bestAnswer = getBestAnswerFromDB(labelText);
+
+    // 1. Campos de Texto ou Número
+    const input = group.querySelector('input[type="text"], input[type="number"]');
+    if (input && !input.value) {
+      input.value = bestAnswer ? bestAnswer : '5'; // Usa o DB, ou chuta 5 como fallback forte
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    // 2. Caixas de Seleção Nativas (Dropdowns)
+    const select = group.querySelector('select');
+    if (select && (!select.value || select.value.includes('Selecione'))) {
+      const options = Array.from(select.options);
+      
+      let targetOption = null;
+      if (bestAnswer) {
+        // Tenta achar a opção que dá match com a nossa melhor resposta do DB
+        targetOption = options.find(opt => opt.text.toLowerCase().includes(bestAnswer.toLowerCase()));
+      }
+      
+      // Se não achou no DB, procura pelo "Sim" genérico
+      if (!targetOption) {
+        targetOption = options.find(opt => opt.text.toLowerCase().includes('sim') || opt.text.toLowerCase().includes('yes'));
+      }
+
+      if (targetOption) {
+        select.value = targetOption.value;
+      } else if (options.length > 1) {
+        select.value = options[1].value; // Chute genérico
+      }
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    // 3. Botões de Rádio (Múltipla escolha)
+    const radios = Array.from(group.querySelectorAll('input[type="radio"]'));
+    if (radios.length > 0) {
+      const isAnyChecked = radios.some(r => r.checked);
+      if (!isAnyChecked) {
+        let targetRadio = null;
+        
+        if (bestAnswer) {
+          targetRadio = radios.find(r => {
+            const rLabel = group.querySelector(`label[for="${r.id}"]`);
+            return rLabel && rLabel.innerText.toLowerCase().includes(bestAnswer.toLowerCase());
+          });
+        }
+
+        if (!targetRadio) {
+          targetRadio = radios.find(r => {
+            const rLabel = group.querySelector(`label[for="${r.id}"]`);
+            return rLabel && (rLabel.innerText.toLowerCase().includes('sim') || rLabel.innerText.toLowerCase().includes('yes'));
+          });
+        }
+        
+        if (targetRadio) {
+          targetRadio.click();
+        } else {
+          radios[0].click(); 
+        }
+      }
+    }
+  });
+}
+
+// Função inteligente para navegar no formulário do LinkedIn
+async function handleEasyApplyModal(resumeName) {
+  console.log("🤖 Robô assumindo o controle do formulário...");
+  
+  let maxAttempts = 10; // Evita loop infinito
+  let attempt = 0;
+
+  while (attempt < maxAttempts) {
+    await sleep(2000); // Esperar animações do modal
+    
+    // Auto-preenchimento de Perguntas Adicionais
+    fillAdditionalQuestions();
+    
+    // Se o usuário definiu um currículo específico, o robô tenta forçar a seleção dele
+    if (resumeName) {
+      const allElements = Array.from(document.querySelectorAll('span, h3, div'));
+      const targetResumeText = allElements.find(el => el.innerText && el.innerText.trim() === resumeName);
+      
+      if (targetResumeText) {
+        // Pega o container inteiro (que é o que a gente consegue clicar)
+        const clickableContainer = targetResumeText.closest('label') || targetResumeText.closest('.jobs-document-upload-rs-item') || targetResumeText.closest('div');
+        if (clickableContainer) {
+          // Só clica se tiver um input desmarcado dentro (evita clicar e desmarcar)
+          const radioBtn = clickableContainer.querySelector('input[type="radio"], input[type="checkbox"]');
+          if (radioBtn && !radioBtn.checked) {
+            console.log(`📄 Selecionando o currículo preferencial: ${resumeName}`);
+            clickableContainer.click();
+            await sleep(500); 
+          }
+        }
+      }
+    }
+
+    // Captura os botões primários do modal
+    const buttons = Array.from(document.querySelectorAll('.artdeco-modal__actionbar button, .artdeco-modal button.artdeco-button--primary'));
+    
+    const nextBtn = buttons.find(b => b.innerText.includes('Avançar') || b.innerText.includes('Next'));
+    const reviewBtn = buttons.find(b => b.innerText.includes('Revisar') || b.innerText.includes('Review'));
+    const submitBtn = buttons.find(b => b.innerText.includes('Enviar candidatura') || b.innerText.includes('Submit'));
+    
+    if (submitBtn) {
+      console.log("🚀 Botão FINAL encontrado! Enviando currículo...");
+      submitBtn.click();
+      
+      // Espera enviar e procura o botão de fechar/concluído da tela de sucesso
+      await sleep(3000);
+      const doneBtns = Array.from(document.querySelectorAll('button')).find(b => b.innerText.includes('Concluído') || b.innerText.includes('Done'));
+      if(doneBtns) doneBtns.click();
+      
+      const dismissBtn = document.querySelector('.artdeco-modal__dismiss');
+      if(dismissBtn) dismissBtn.click();
+
+      return "APPLIED";
+    }
+
+    if (reviewBtn) {
+      console.log("⏩ Página de Revisão. Clicando em Revisar...");
+      reviewBtn.click();
+      attempt++;
+      continue;
+    }
+
+    if (nextBtn) {
+      console.log("⏩ Clicando em Avançar...");
+      nextBtn.click();
+      attempt++;
+      continue;
+    }
+
+    // Verifica se há campos obrigatórios vazios que travaram o clique no "Avançar"
+    const errorMsg = document.querySelector('.artdeco-inline-feedback--error');
+    if (errorMsg) {
+      console.warn("⚠️ O LinkedIn bloqueou o robô com uma pergunta nativa muito complexa. Pausando para intervenção humana.");
+      return "MANUAL";
+    }
+
+    // Se não achou nenhum botão, quebra o loop
+    break;
+  }
+  return "UNKNOWN";
+}
+
+async function startAutoApplier(keywords, resumeName) {
+  console.log("🚀 Iniciando LinkedIn Auto Applier com as palavras:", keywords);
+  if (resumeName) console.log("📄 Tentando usar o currículo:", resumeName);
+  
+  const jobCards = document.querySelectorAll('.job-card-container');
+  
+  if (jobCards.length === 0) {
+    alert("Nenhuma vaga encontrada na tela. Certifique-se de estar na lista de vagas e role a página para carregar os itens.");
+    return;
+  }
+
+  console.log(`Encontradas ${jobCards.length} vagas. Analisando...`);
+
+  for (let i = 0; i < jobCards.length; i++) {
+    const card = jobCards[i];
+    
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    card.click();
+    await sleep(2500); 
+
+    const jobDescriptionElement = document.querySelector('.jobs-description-content__text, #job-details');
+    if (!jobDescriptionElement) continue;
+
+    const jobDescriptionText = jobDescriptionElement.innerText.toLowerCase();
+    const hasMatch = keywords.some(keyword => jobDescriptionText.includes(keyword));
+
+    if (hasMatch) {
+      console.log(`✅ MATCH ENCONTRADO na vaga ${i + 1}!`);
+      card.style.border = "3px solid #1db954"; 
+
+      const applyButtons = Array.from(document.querySelectorAll('button'));
+      const easyApplyBtn = applyButtons.find(btn => 
+        btn.innerText.includes('Candidatura simplificada') || 
+        btn.innerText.includes('Easy Apply')
+      );
+
+      if (easyApplyBtn) {
+        console.log("👉 Iniciando Candidatura Simplificada...");
+        easyApplyBtn.click();
+        
+        // Agora o robô tenta preencher o formulário sozinho
+        const status = await handleEasyApplyModal(resumeName);
+        
+        if (status === "MANUAL") {
+          alert("O LinkedIn fez uma pergunta específica na vaga que o robô não sabe responder.\n\nPreencha essa etapa manualmente, envie a vaga e depois inicie o robô novamente!");
+          break; // Para o loop para o usuário responder
+        } else if (status === "APPLIED") {
+          console.log("🎉 Vaga aplicada com sucesso! Indo para a próxima em 3 segundos...");
+          card.style.background = "rgba(29, 185, 84, 0.1)"; // Pinta o fundo de verdinho
+          await sleep(3000); // Tempo para o modal sumir totalmente
+        }
+      } else {
+        console.log("❌ Aplicação externa. Pulando...");
+        card.style.border = "3px solid #ff4757"; 
+      }
+    } else {
+      card.style.border = "3px solid #555"; 
+    }
+
+    await sleep(1500);
+  }
+  
+  console.log("🏁 Varredura concluída desta página!");
+}
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === 'START_AUTO_APPLY') {
+    startAutoApplier(request.keywords, request.resumeName);
+  }
+});

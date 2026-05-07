@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>LinkedIn Auto Applier</title>
+  <style>
+    body {
+      font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      width: 350px;
+      padding: 15px;
+      background-color: #f3f2ef; /* LinkedIn background color */
+      color: #333;
+      margin: 0;
+    }
+    h2 {
+      font-size: 18px;
+      text-align: center;
+      margin-top: 0;
+      color: #0a66c2; /* LinkedIn Blue */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .container {
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+    label {
+      font-size: 12px;
+      font-weight: bold;
+      color: #666;
+    }
+    textarea {
+      width: 100%;
+      height: 60px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      resize: none;
+      font-family: inherit;
+      box-sizing: border-box;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background-color: #0a66c2;
+      color: white;
+      border: none;
+      border-radius: 24px;
+      font-weight: bold;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .btn:hover {
+      background-color: #004182;
+    }
+    .status-area {
+      margin-top: 15px;
+      font-size: 12px;
+      text-align: center;
+      color: #666;
+      padding: 10px;
+      border-radius: 4px;
+      background-color: #e8f3ff;
+      border: 1px solid #b3d4fc;
+    }
+  </style>
+</head>
+<body>
+  <h2>
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#0a66c2"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+    Auto Applier Pro
+  </h2>
+  
+  <div class="container">
+    <label for="keywords">Palavras-chave do seu currículo (separadas por vírgula):</label>
+    <textarea id="keywords" placeholder="Ex: React, JavaScript, Node.js, Frontend..."></textarea>
+
+    <label for="resumeName">Nome exato do Currículo PDF (Para auto-seleção):</label>
+    <input type="text" id="resumeName" placeholder="Curriculo_Peterson_Nogueira_Final.pdf" style="width: 100%; padding: 8px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: inherit;">
+
+    <button class="btn" id="startBtn">Iniciar Busca e Candidatura</button>
+
+    <div class="status-area" id="status">
+      Pronto para varrer as vagas no LinkedIn!
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
