@@ -15,8 +15,8 @@ const SmartAnswersDB = [
   { keywords: ['english', 'inglês', 'idioma', 'language'], answer: 'fluente' }, 
   { keywords: ['espanhol', 'spanish'], answer: 'avançado' },
   
-  // Salário (Ajustado para nível Liderança/Gerência)
-  { keywords: ['salári', 'pretensão', 'salary', 'compensation'], answer: '18000' },
+  // Salário (Algumas vagas exigem decimal explicitly, como 18000.0)
+  { keywords: ['salári', 'pretensão', 'salary', 'compensation'], answer: '18000.0' },
   
   // Modelos de contratação e Tecnologias que não domino
   { keywords: ['pj', 'clt', 'modelo', 'contratação'], answer: 'sim' },
@@ -26,7 +26,7 @@ const SmartAnswersDB = [
   { keywords: ['disponibilidade', 'notice period', 'início', 'começar'], answer: 'Imediato' },
   
   // Experiência (Anos - Ajustado para IT Manager)
-  { keywords: ['anos', 'years', 'experiência', 'experience'], answer: '10' },
+  { keywords: ['anos', 'years', 'experiência', 'experience'], answer: '10.0' },
   
   // Questões EEO (Igualdade)
   { keywords: ['deficiência', 'disability', 'veteran', 'veterano'], answer: 'não' },
@@ -46,13 +46,14 @@ function setReactInputValue(element, value) {
   element.focus && element.focus();
   element.dispatchEvent(new Event('focus', { bubbles: true }));
   
+  // Define o valor visualmente antes do hack do React
+  element.value = value;
+  
   const isSelect = element.tagName === 'SELECT';
   const proto = isSelect ? window.HTMLSelectElement.prototype : window.HTMLInputElement.prototype;
-  const setter = Object.getOwnPropertyDescriptor(proto, 'value').set;
+  const setter = Object.getOwnPropertyDescriptor(proto, 'value')?.set;
   if (setter) {
     setter.call(element, value);
-  } else {
-    element.value = value;
   }
   
   element.dispatchEvent(new Event('input', { bubbles: true }));
@@ -76,7 +77,7 @@ function fillAdditionalQuestions() {
     // 1. Campos de Texto ou Número
     const input = group.querySelector('input[type="text"], input[type="number"]');
     if (input && !input.value) {
-      const valueToInject = bestAnswer ? bestAnswer : '10'; // Fallback forte
+      const valueToInject = bestAnswer ? bestAnswer : '10.0'; // Fallback forte com decimal
       setReactInputValue(input, valueToInject);
     }
 
@@ -87,7 +88,13 @@ function fillAdditionalQuestions() {
       
       let targetOption = null;
       if (bestAnswer) {
-        targetOption = options.find(opt => opt.text.toLowerCase().includes(bestAnswer.toLowerCase()));
+        targetOption = options.find(opt => {
+          const text = opt.text.toLowerCase();
+          const ans = bestAnswer.toLowerCase();
+          if (ans === 'não' && (text.includes('não') || text.includes('no') || text.includes('nao'))) return true;
+          if (ans === 'sim' && (text.includes('sim') || text.includes('yes'))) return true;
+          return text.includes(ans);
+        });
       }
       
       if (!targetOption) {
